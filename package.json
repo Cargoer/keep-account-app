@@ -13,6 +13,7 @@
     "sass": "^1.42.1",
     "vue": "^2.6.11",
     "vue-datepicker-ui": "^2.2.0",
+    "vue-router": "^3.5.2",
     "vuex": "^3.6.2"
   },
   "devDependencies": {
@@ -30,8 +31,7 @@
       "node": true
     },
     "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
+      "plugin:vue/essential"
     ],
     "parserOptions": {
       "parser": "babel-eslint"
@@ -42,5 +42,5 @@
     "> 1%",
     "last 2 versions",
     "not dead"
-  ]
+  ] 
 }

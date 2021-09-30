@@ -1,16 +1,20 @@
 <template>
   <div id="app">
-    <DailyRecord />
+    <!-- <DailyRecord /> -->
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
-import DailyRecord from './pages/DailyRecord.vue'
+// import DailyRecord from './pages/DailyRecord.vue'
 
 export default {
   name: 'App',
   components: {
-    DailyRecord
+    // DailyRecord
+  },
+  created() {
+    this.$router.push('/daily_record')
   }
 }
 </script>
@@ -22,6 +26,6 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  /* margin-top: 60px; */
 }
 </style>

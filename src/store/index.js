@@ -1,7 +1,6 @@
 import Airtable from 'airtable'
 import Vue from 'vue'
 import Vuex from 'vuex'
-// import formatter from '../common/formatter'
 Vue.use(Vuex);
 
 var base = new Airtable({apiKey: 'YOU_API_KEY'}).base('appG9EdnP5rg4pyp9');
@@ -10,9 +9,13 @@ var table = base('records_test')
 const store = new Vuex.Store({
   state: {
     records: [],
-    chosenDay: new Date()
+    chosenDay: new Date(),
+    curRecord: {},
   },
   mutations: {
+    setCurRecord(state, record) {
+      state.curRecord = record
+    },
     insert(state, record) {
       table.create(record, (err, row) => {
         if(err) {
@@ -25,27 +28,28 @@ const store = new Vuex.Store({
         table.update(insertId, {
           "id": insertId
         }, (err) => {
-          console.log("updateIdErr:", err)
+          err && console.log("updateIdErr:", err)
         })
       })
     },
-    update(state, id, change) {
+    update(state, payload) {
       state.records = state.records.map(item => {
-        if(item.id === id) {
-          item = {...item, ...change}
+        if(item.id === payload.id) {
+          item = {...item, ...payload.change}
         }
         return item
       })
-      table.update(id, change, (err) => {
-        console.log("updateErr:", err)
+      console.log(payload)
+      table.update(payload.id, payload.change, (err) => {
+        err && console.log("updateErr:", err)
       })
     },
     delete(state, ids) {
       state.records = state.records.filter(item => {
         return ids.indexOf(item.id) === -1
       })
-      this.table.destroy(ids, (err) => {
-        console.log("deleteErr:", err)
+      table.destroy(ids, (err) => {
+        err && console.log("deleteErr:", err)
       })
     },
     initData(state) {

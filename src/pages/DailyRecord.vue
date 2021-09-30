@@ -30,7 +30,7 @@ export default {
     },
     methods: {
         toAdd() {
-            
+            this.$router.push(`/record/add`)
         }
     },
     onShow() {
@@ -52,6 +52,13 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 15px;
+    max-width: 600px;
+    min-height: 80vh;
+    margin: 20px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 10px rgba(168, 155, 150, .8);
+    overflow: auto;
+    position: relative;
 }
 .add {
     --size: 80px;
@@ -62,7 +69,8 @@ export default {
     text-align: center;
     line-height: var(--size);
 
-    position: fixed;
-    bottom: 15px;
+    position: absolute;
+    top: 15px;
+    right: 10px;
 }
 </style>

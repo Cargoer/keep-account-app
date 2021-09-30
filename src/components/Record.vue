@@ -1,7 +1,7 @@
 <template>
-  <div class="record fr">
+  <div class="record fr" @click="toDetail">
     <div class="typeIcon"></div>
-    <div class="content">{{record.content}}</div>
+    <div class="content">{{record.content?record.content: record.category}}</div>
     <div class="amount">
       {{signOfRecord}}{{record.amount}}
     </div>
@@ -19,6 +19,13 @@ export default {
   onShow() {
     console.log("Record onShow!")
     console.log("record:", this.record)
+  },
+  methods: {
+    toDetail() {
+      console.log("toDetail")
+      this.$store.commit("setCurRecord", this.record)
+      this.$router.push(`/record/detail`)
+    }
   }
 }
 </script>
@@ -36,8 +43,8 @@ export default {
   padding: auto 10px;
 }
 .typeIcon {
-  width: 60px;
-  height: 60px;
+  width: 40px;
+  height: 40px;
   border: 1px solid black;
 }
 .amount {
