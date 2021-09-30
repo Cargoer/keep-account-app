@@ -33,8 +33,8 @@
             <label>内容 <input type="text" class="long-text-input" v-model="content"></label>
             <label>金额 <input type="number" class="number-input" v-model="amount"></label>
         </div>
-        <button v-if="!isDetail" @click="addRecord">添加</button>
-        <div v-if="isDetail">
+        <button v-if="this.page == 'add'" @click="addRecord">添加</button>
+        <div v-if="this.page == 'detail'">
             <button @click="modifyRecord">修改</button>
             <button @click="deleteRecord">删除</button>
         </div>
