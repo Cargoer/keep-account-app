@@ -1,32 +1,30 @@
 <template>
-    <div class="add-record">
+    <div class="add-record fc">
         <div class="tabbar">
-            <button @click="switchRecordType('支出')">支出</button>
-            <button @click="switchRecordType('收入')">收入</button>
+            <button @click="switchRecordType('支出')" class="button" :class="{active: recordType == '支出'}">支出</button>
+            <button @click="switchRecordType('收入')" class="button" :class="{active: recordType == '收入'}">收入</button>
         </div>
         <div class="choose-category">
-            <div v-if="recordType == '支出'">
-                <label for="category">类别 </label>
-                <select name="category" id="category" v-model="category">
-                    <option value="餐饮">餐饮</option>
-                </select>
-            </div>
-            <div v-else>
-                <label for="category">类别 </label>
-                <select name="category" id="category" v-model="category">
-                    <option value="余额宝收益">余额宝收益</option>
-                </select>
-            </div>
-            <hr>
+            <label>收支类别 - {{category? category: '请选择'}} </label>
+            <scroll-view class="fr">
+                <div
+                    v-for="(item, index) in (recordType == '支出'? expenseEnumeration: incomeEnumeration)"
+                    :key="index"
+                    @click="setCategory(item)"
+                    :class="['chooseIcon', {chosen: category == item}]"
+                >{{item}}</div>
+            </scroll-view>
         </div>
         <div class="choose-account">
-            <label for="account">账户 </label>
-            <select name="account" id="account" v-model="accountType">
-                <option value="alipay">支付宝</option>
-                <option value="wechat">微信</option>
-                <option value="abc">农业银行</option>
-                <option value="cmb">招商银行</option>
-            </select>
+            <label>收支账户 - {{accountType? accountType: '请选择'}} </label>
+            <scroll-view class="fr">
+                <div
+                    v-for="(item, index) in accountEnumeration"
+                    :key="index"
+                    @click="setAccount(item)"
+                    :class="['chooseIcon', {chosen: accountType == item}]"
+                >{{item}}</div>
+            </scroll-view>
             <hr>
         </div>
         <div class="input-amount">
@@ -38,6 +36,7 @@
             <button @click="modifyRecord">修改</button>
             <button @click="deleteRecord">删除</button>
         </div>
+        <button @click="navBack">返回</button>
     </div>
 </template>
 
@@ -50,11 +49,16 @@ export default {
             category: '',
             accountType: '',
             content: '',
-            amount: -1,
+            amount: null,
             recordType: '支出',
 
             // 控制字段
-            isDetail: false // 是否点击记录进入详情
+            isDetail: false, // 是否点击记录进入详情
+
+            // 固定
+            accountEnumeration: ['alipay', 'wechat', 'abc', 'cmb'],
+            expenseEnumeration: ['餐饮'],
+            incomeEnumeration: ['余额宝收益'],
         }
     },
     props: {page:{}},
@@ -94,10 +98,18 @@ export default {
         deleteRecord() {
             this.$store.commit("delete", [this.curRecord.id])
             this.$router.push('/daily_record')
+        },
+        setAccount(val) {
+            this.accountType = val
+        },
+        setCategory(val) {
+            this.category = val
+        },
+        navBack() {
+            this.$router.push('/daily_record')
         }
     },
     created() {
-        // this.isDetail = this.isDetail
         console.log(this.page)
         if(this.page == 'detail') {
             if(!this.curRecord){
@@ -115,5 +127,42 @@ export default {
 </script>
 
 <style>
-
+.fr {
+    display: flex;
+    gap: 15px;
+}
+.fc {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.tabbar {
+    width: 600px;
+    height: 50px;
+}
+.button {
+    width: 300px;
+    height: 50px;
+    border-radius: 25px 0 0 25px;
+    background-color: rgb(164, 224, 248);
+    border: none;
+    outline: none;
+}
+.button:last-child {
+    border-radius: 0 25px 25px 0;
+}
+.active {
+    background-color: rgb(83, 203, 250);
+    transform: scale(1.05);
+}
+.chooseIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 5px;
+    border: 1px solid black;
+}
+.chosen {
+    background-color: #000;
+    color: #fff;
+}
 </style>

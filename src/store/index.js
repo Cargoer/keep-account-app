@@ -16,6 +16,9 @@ const store = new Vuex.Store({
     setCurRecord(state, record) {
       state.curRecord = record
     },
+    setChosenDay(state, date) {
+      state.chosenDay = date
+    },
     insert(state, record) {
       table.create(record, (err, row) => {
         if(err) {
@@ -55,11 +58,14 @@ const store = new Vuex.Store({
     initData(state) {
       // 初始化数据
       console.log("initData!")
-      console.log(new Date().toISOString().split('T')[0])
+      console.log("chosenDay:", state.chosenDay)
+      let curDate = state.chosenDay
+      curDate.setHours(curDate.getHours() + 8)
+      console.log("iso:", curDate.toISOString())
       table
         .select({
           view: "Grid view",
-          filterByFormula: `createTime = "${new Date(state.chosenDay).toISOString().split('T')[0]}"` // 这里还有待确认！！！
+          filterByFormula: `createTime = "${curDate.toISOString().split('T')[0]}"` // 这里还有待确认！！！
         })
         .firstPage((err, records) => { // eachPage?
           if(err) {

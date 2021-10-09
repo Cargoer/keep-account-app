@@ -1,11 +1,16 @@
 <template>
     <div class="daily-records">
-        <DatePicker 
-            v-model="dateValue"
-            lang="ch" 
-        />
+        <keep-alive>
+            <DatePicker 
+                v-model="dateValue"
+                lang="ch" 
+            />
+        </keep-alive>
+        <button class="today-button" @click="dateValue = new Date()">今天</button>
         <RecordList />
         <button class="add" @click="toAdd">+</button>
+        <button class="date-shift-button left" @click="shiftDay(-1)">&lt;</button>
+        <button class="date-shift-button right" @click="shiftDay(1)">&gt;</button>
     </div>
 </template>
 
@@ -16,7 +21,7 @@ import RecordList from '../components/RecordList.vue'
 export default {
     data() {
         return {
-            dateValue: new Date()
+            dateValue: new Date(),
         }
     },
     components: {
@@ -24,26 +29,31 @@ export default {
         RecordList
     },
     watch: {
-        dateValue: function(newVal) {
-            console.log(newVal)
-        }
+        dateValue: {
+            handler: function(newVal) {
+                console.log("newVal:", newVal)
+                this.$store.commit("setChosenDay", newVal)
+                this.$store.commit("initData")
+            },
+            deep: true
+        },
     },
     methods: {
         toAdd() {
             this.$router.push(`/record/add`)
+        },
+        shiftDay(n) {
+            let tempDate = this.dateValue
+            // this.dateValue.setDate(this.dateValue.getDate() + n)
+            tempDate.setDate(tempDate.getDate() + n)
+            this.dateValue = new Date(tempDate)
+            console.log("after shift:", this.dateValue)
         }
-    },
-    onShow() {
-        console.log("DailyRecord onShow!")
-        this.$store.commit("initData")
-    },
-    onLoad() {
-        console.log("DailyRecord onLoad!")
     },
     created() {
         console.log("DailyRecord created!")
         this.$store.commit("initData")
-    }
+    },
 }
 </script>
 
@@ -72,5 +82,29 @@ export default {
     position: absolute;
     top: 15px;
     right: 10px;
+}
+.date-shift-button {
+    width: 40px;
+    height: 100px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    border-radius: 0 10px 10px 0;
+    transition: .5s;
+}
+.left {
+    left: 0;
+}
+.right {
+    right: 0;
+    border-radius: 10px 0 0 10px;
+}
+.date-shift-button:hover {
+    /* border: 1px solid rgba(50,50,50,.5); */
+    box-shadow: 2px 2px 5px rgba(10,50,50,.5);
+}
+.right:hover {
+    box-shadow: -2px 2px 5px rgba(10,50,50,.5);
 }
 </style>
