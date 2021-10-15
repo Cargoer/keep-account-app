@@ -1,11 +1,11 @@
 <template>
     <div class="daily-records">
-        <keep-alive>
-            <DatePicker 
-                v-model="dateValue"
-                lang="ch" 
-            />
-        </keep-alive>
+        <!-- <keep-alive> -->
+        <DatePicker 
+            v-model="dateValue"
+            lang="ch" 
+        />
+        <!-- </keep-alive> -->
         <button class="today-button" @click="dateValue = new Date()">今天</button>
         <RecordList />
         <button class="add" @click="toAdd">+</button>
@@ -54,6 +54,9 @@ export default {
         console.log("DailyRecord created!")
         this.$store.commit("initData")
     },
+    beforeDestroy() {
+        this.$store.commit("setAirtableSavings")
+    }
 }
 </script>
 

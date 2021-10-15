@@ -6,25 +6,30 @@
         </div>
         <div class="choose-category">
             <label>收支类别 - {{category? category: '请选择'}} </label>
-            <scroll-view class="fr">
+            <div class="fr">
                 <div
                     v-for="(item, index) in (recordType == '支出'? expenseEnumeration: incomeEnumeration)"
                     :key="index"
                     @click="setCategory(item)"
-                    :class="['chooseIcon', {chosen: category == item}]"
+                    :class="['chooseIcon', 'fc', {chosen: category == item}]"
                 >{{item}}</div>
-            </scroll-view>
+            </div>
         </div>
         <div class="choose-account">
             <label>收支账户 - {{accountType? accountType: '请选择'}} </label>
-            <scroll-view class="fr">
+            <div class="fr">
                 <div
                     v-for="(item, index) in accountEnumeration"
                     :key="index"
-                    @click="setAccount(item)"
+                    @click="setAccount(item.name)"
                     :class="['chooseIcon', {chosen: accountType == item}]"
-                >{{item}}</div>
-            </scroll-view>
+                >
+                    <svg class="icon" aria-hidden="true">
+                        <use :xlink:href="'#'+(accountType != item.name? item.icon: item.activeIcon)"></use>
+                    </svg>
+                    <div>{{item.name}}</div>
+                </div>
+            </div>
             <hr>
         </div>
         <div class="input-amount">
@@ -42,6 +47,7 @@
 
 <script>
 import {mapState} from 'vuex'
+import '../static/iconfont'
 export default {
     data() {
         return {
@@ -51,14 +57,21 @@ export default {
             content: '',
             amount: null,
             recordType: '支出',
+            formerAmount: null,
+            formerAccountType: '',
 
             // 控制字段
             isDetail: false, // 是否点击记录进入详情
 
             // 固定
-            accountEnumeration: ['alipay', 'wechat', 'abc', 'cmb'],
-            expenseEnumeration: ['餐饮'],
-            incomeEnumeration: ['余额宝收益'],
+            accountEnumeration: [
+                {name: 'alipay', icon: 'icon-alipay', activeIcon: 'icon-zhifubao'},
+                {name: 'wechat', icon: 'icon-weixin', activeIcon: 'icon-weixin1'},
+                {name: 'abc', icon: 'icon-nongyeyinxing', activeIcon: 'icon-nongyeyinhang-'},
+                {name: 'cmb', icon: 'icon-zhaoshangyinhangbank1193432easyiconnet', activeIcon: 'icon-zhaoshangyinhang'},
+            ],
+            expenseEnumeration: ['餐饮','交通','日用','服饰','住房','娱乐','数码'],
+            incomeEnumeration: ['理财收益', '餐补', '工资', '红包返利'],
         }
     },
     props: {page:{}},
@@ -89,10 +102,16 @@ export default {
                 category: this.category,
                 accountType: this.accountType
             }
-            this.$store.commit("update", {
+            let payLoad = {
                 id: this.curRecord.id,
-                change: change
-            })
+                change: change,
+                formerData: {
+                    amount: this.formerAmount,
+                    accountType: this.accountType
+                }
+            }
+            console.log("payLoad before:", payLoad)
+            this.$store.commit("update", payLoad)
             this.$router.push('/daily_record')
         },
         deleteRecord() {
@@ -116,10 +135,13 @@ export default {
                 console.log("err: do not get current record!")
                 return
             }
+            console.log("curRecord:", this.curRecord)
             this.category = this.curRecord.category
             this.accountType = this.curRecord.accountType
+            this.formerAccountType = this.curRecord.accountType
             this.content = this.curRecord.content
             this.amount = this.curRecord.amount
+            this.formerAmount = this.curRecord.amount
             this.recordType = this.curRecord.recordType
         }
     }
@@ -155,14 +177,20 @@ export default {
     background-color: rgb(83, 203, 250);
     transform: scale(1.05);
 }
-.chooseIcon {
+.chooseIcon svg {
     width: 40px;
     height: 40px;
     border-radius: 5px;
-    border: 1px solid black;
+    border-radius: 1px solid rgb(164, 224, 248);
 }
-.chosen {
-    background-color: #000;
-    color: #fff;
+.chosen svg {
+    border: 2px solid rgb(83, 203, 250);
+    border-radius: 6px;
+}
+.icon {
+    width: 1em; height: 1em;
+    vertical-align: -0.15em;
+    fill: currentColor;
+    overflow: hidden;
 }
 </style>
