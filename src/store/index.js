@@ -3,8 +3,9 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 Vue.use(Vuex);
 
-var base = new Airtable({apiKey: 'YOU_API_KEY'}).base('appG9EdnP5rg4pyp9');
+var base = new Airtable({apiKey: 'keyZ4ydi5sz7NHOIZ'}).base('appG9EdnP5rg4pyp9');
 var table = base('records_test'), savingTable = base('saving_test')
+const savingId = 'recFolhzu0j0V2ADk'
 
 const store = new Vuex.Store({
   state: {
@@ -39,9 +40,9 @@ const store = new Vuex.Store({
         var delta = record.recordType == '支出'? (-record.amount): record.amount
         state.savings.saving += delta
         state.savings[record.accountType] += delta
-        // savingTable.update(state.savings.id, {
-        //   [record.accountType]: state.savings[record.accountType]
-        // }, (err) => {err && console.log("update-saving err:", err)})
+        savingTable.update(savingId, {
+          [record.accountType]: state.savings[record.accountType]
+        }, (err) => {err && console.log("update-saving err:", err)})
       })
     },
     update(state, payload) {
@@ -69,27 +70,27 @@ const store = new Vuex.Store({
         let delta = curAmount - formerAmount
         state.savings.saving += delta
         state.savings[curAccountType] += delta
-        // savingTable.update('test', {
-        //   [payload.change.accountType]: state.savings[curAccountType]
-        // }, (err) => {err && console.log("update-saving err:", err)})
+        savingTable.update(savingId, {
+          [payload.change.accountType]: state.savings[curAccountType]
+        }, (err) => {err && console.log("update-saving err:", err)})
       }
       // 2. 只改账户，前账户金额-=amount，后账户金额+=amount
       if(formerAmount == curAmount && formerAccountType != curAccountType){
         state.savings[formerAccountType] -= curAmount
         state.savings[curAccountType] += curAmount
-        // savingTable.update('test', {
-        //   [formerAccountType]: state.savings[formerAccountType],
-        //   [curAccountType]: state.savings[curAccountType]
-        // }, (err) => {err && console.log("update-saving err:", err)})
+        savingTable.update(savingId, {
+          [formerAccountType]: state.savings[formerAccountType],
+          [curAccountType]: state.savings[curAccountType]
+        }, (err) => {err && console.log("update-saving err:", err)})
       }
       // 3. 都改，前账户金额-=formerAmount，后账户金额+=curAmount
       if(formerAmount != curAmount && formerAccountType != curAccountType){
         state.savings[formerAccountType] -= formerAmount
         state.savings[curAccountType] += curAmount
-        // savingTable.update('test', {
-        //   [formerAccountType]: state.savings[formerAccountType],
-        //   [curAccountType]: state.savings[curAccountType]
-        // }, (err) => {err && console.log("update-saving err:", err)})
+        savingTable.update(savingId, {
+          [formerAccountType]: state.savings[formerAccountType],
+          [curAccountType]: state.savings[curAccountType]
+        }, (err) => {err && console.log("update-saving err:", err)})
       }
     },
     delete(state, ids) {
@@ -105,9 +106,9 @@ const store = new Vuex.Store({
       deletedRecords.forEach((item) => {
         state.savings.saving -= item.amount
         state.savings[item.accountType] -= item.amount
-        // savingTable.update('test', {
-        //   [item.accountType]: state.savings[item.accountType]
-        // }, (err) => {err && console.log("update-saving err:", err)})
+        savingTable.update(savingId, {
+          [item.accountType]: state.savings[item.accountType]
+        }, (err) => {err && console.log("update-saving err:", err)})
       })
     },
     initData(state) {

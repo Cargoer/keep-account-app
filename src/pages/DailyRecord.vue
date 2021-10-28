@@ -54,9 +54,9 @@ export default {
         console.log("DailyRecord created!")
         this.$store.commit("initData")
     },
-    beforeDestroy() {
-        this.$store.commit("setAirtableSavings")
-    }
+    // beforeDestroy() {
+    //     this.$store.commit("setAirtableSavings")
+    // }
 }
 </script>
 

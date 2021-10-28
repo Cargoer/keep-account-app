@@ -25,7 +25,7 @@
                     :class="['chooseIcon', {chosen: accountType == item}]"
                 >
                     <svg class="icon" aria-hidden="true">
-                        <use :xlink:href="'#'+(accountType != item.name? item.icon: item.activeIcon)"></use>
+                        <use :xlink:href="'#'+item.icon"></use>
                     </svg>
                     <div>{{item.name}}</div>
                 </div>
@@ -65,10 +65,10 @@ export default {
 
             // 固定
             accountEnumeration: [
-                {name: 'alipay', icon: 'icon-alipay', activeIcon: 'icon-zhifubao'},
-                {name: 'wechat', icon: 'icon-weixin', activeIcon: 'icon-weixin1'},
-                {name: 'abc', icon: 'icon-nongyeyinxing', activeIcon: 'icon-nongyeyinhang-'},
-                {name: 'cmb', icon: 'icon-zhaoshangyinhangbank1193432easyiconnet', activeIcon: 'icon-zhaoshangyinhang'},
+                {name: 'alipay', icon: 'icon-zhifubao1'},
+                {name: 'wechat', icon: 'icon-weixinzhifu'},
+                {name: 'abc', icon: 'icon-nongyeyinhang'},
+                {name: 'cmb', icon: 'icon-zhaoshangyinhang'},
             ],
             expenseEnumeration: ['餐饮','交通','日用','服饰','住房','娱乐','数码'],
             incomeEnumeration: ['理财收益', '餐补', '工资', '红包返利'],
@@ -177,11 +177,12 @@ export default {
     background-color: rgb(83, 203, 250);
     transform: scale(1.05);
 }
-.chooseIcon svg {
-    width: 40px;
-    height: 40px;
-    border-radius: 5px;
-    border-radius: 1px solid rgb(164, 224, 248);
+.chooseIcon .icon {
+    /* width: 40px;
+    height: 40px; */
+    font-size: 16px;
+    /* border-radius: 5px; */
+    /* border-radius: 1px solid rgb(164, 224, 248); */
 }
 .chosen svg {
     border: 2px solid rgb(83, 203, 250);
@@ -192,5 +193,8 @@ export default {
     vertical-align: -0.15em;
     fill: currentColor;
     overflow: hidden;
+}
+.icon use {
+    width: 100%; height: 100%;
 }
 </style>
