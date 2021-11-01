@@ -4,7 +4,7 @@
             <button @click="switchRecordType('支出')" class="button" :class="{active: recordType == '支出'}">支出</button>
             <button @click="switchRecordType('收入')" class="button" :class="{active: recordType == '收入'}">收入</button>
         </div>
-        <div class="choose-category">
+        <div class="choose-category choose">
             <label>收支类别 - {{category? category: '请选择'}} </label>
             <div class="fr">
                 <div
@@ -15,7 +15,7 @@
                 >{{item}}</div>
             </div>
         </div>
-        <div class="choose-account">
+        <div class="choose-account choose">
             <label>收支账户 - {{accountType? accountType: '请选择'}} </label>
             <div class="fr">
                 <div
@@ -148,7 +148,7 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
 .fr {
     display: flex;
     gap: 15px;
@@ -157,26 +157,52 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 15px;
+    align-items: center;
 }
-.tabbar {
-    width: 600px;
-    height: 50px;
+.add-record {
+    max-width: 600px;
+    margin: 20px;
+    border-radius: 10px;
+    // box-shadow: 2px 2px 10px rgba(168, 155, 150, .8);
+    border-top: 5px solid rgb(245, 212, 102);
+    overflow: auto;
+    position: relative;
+    padding: 20px;
+    .tabbar {
+        width: 100%;
+        .button {
+            width: 45%;
+            height: 50px;
+            border-radius: 25px 0 0 25px;
+            background-color: rgb(164, 224, 248);
+            border: none;
+            outline: none;
+        }
+        .button:last-child {
+            border-radius: 0 25px 25px 0;
+        }
+        .active {
+            background-color: rgb(83, 203, 250);
+            transform: scale(1.05);
+        }
+    }
+    .choose {
+        width: 90%;
+        position: relative;
+        padding: 15px 10px 5px;
+        border-top: 2px solid rgb(243, 215, 56);
+        margin-top: 15px;
+        label {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 0 10px;
+        }
+    }
 }
-.button {
-    width: 300px;
-    height: 50px;
-    border-radius: 25px 0 0 25px;
-    background-color: rgb(164, 224, 248);
-    border: none;
-    outline: none;
-}
-.button:last-child {
-    border-radius: 0 25px 25px 0;
-}
-.active {
-    background-color: rgb(83, 203, 250);
-    transform: scale(1.05);
-}
+
 .chooseIcon .icon {
     /* width: 40px;
     height: 40px; */

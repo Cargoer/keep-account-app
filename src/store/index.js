@@ -3,7 +3,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 Vue.use(Vuex);
 
-var base = new Airtable({apiKey: 'YOU_API_KEY'}).base('appG9EdnP5rg4pyp9');
+var base = new Airtable({apiKey: 'keyZ4ydi5sz7NHOIZ'}).base('appG9EdnP5rg4pyp9');
 var table = base('records_test'), savingTable = base('saving_test')
 const savingId = 'recFolhzu0j0V2ADk'
 
@@ -13,6 +13,13 @@ const store = new Vuex.Store({
     chosenDay: new Date(),
     curRecord: {},
     savings: {}
+  },
+  getters: {
+    dailyTotal(state) {
+      return state.records.reduce((item, sum) => {
+        sum += item.recordType == '支出'? -item.amount: item.amount
+      }, 0)
+    }
   },
   mutations: {
     setCurRecord(state, record) {
