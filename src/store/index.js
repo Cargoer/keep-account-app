@@ -16,9 +16,12 @@ const store = new Vuex.Store({
   },
   getters: {
     dailyTotal(state) {
-      return state.records.reduce((item, sum) => {
-        sum += item.recordType == '支出'? -item.amount: item.amount
+      console.log("records for dailyTotal:", state.records)
+      let total = state.records.reduce((sum, item) => {
+        return sum + (item.recordType == '支出'? -item.amount: item.amount)
       }, 0)
+      console.log("total:", total)
+      return total
     }
   },
   mutations: {

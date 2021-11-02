@@ -23,8 +23,11 @@ export default {
 .record-list {
   display: flex;
   flex-direction: column;
+  /* align-items: center; */
   padding: 15px 10px;
   /* box-shadow: 1px 1px 2px gray; */
+  box-sizing: border-box;
+  width: 100%;
 }
 .saving {
   padding: 10px 0;

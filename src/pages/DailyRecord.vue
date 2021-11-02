@@ -17,12 +17,14 @@
                 <label class="summary-text">今日收支</label>
                 <div class="daily-total">￥{{dailyTotal}}</div>
             </div>
+            <div class="vertical-line"></div>
             <div class="summary-box">
                 <label class="summary-text">剩余积蓄</label>
                 <div class="remain-saving">￥{{savings.saving}}</div>
             </div>
         </div>
         <RecordList />
+        <div>{{dateValue}}</div>
         
         <button class="date-shift-button left" @click="shiftDay(-1)">&lt;</button>
         <button class="date-shift-button right" @click="shiftDay(1)">&gt;</button>
@@ -51,7 +53,6 @@ export default {
     watch: {
         dateValue: {
             handler: function(newVal) {
-                console.log("newVal:", newVal)
                 this.$store.commit("setChosenDay", newVal)
                 this.$store.commit("initData")
             },
@@ -67,20 +68,21 @@ export default {
             // this.dateValue.setDate(this.dateValue.getDate() + n)
             tempDate.setDate(tempDate.getDate() + n)
             this.dateValue = new Date(tempDate)
-            console.log("after shift:", this.dateValue)
+            console.log("==============================")
+            console.log("dateValue:", this.dateValue)
+            this.$store.commit("setChosenDay", this.dateValue)
+            this.$store.commit("initData")
         }
     },
     created() {
         console.log("DailyRecord created!")
+        console.log("dateValue:", this.dateValue)
+        this.$store.commit("setChosenDay", this.dateValue)
         this.$store.commit("initData")
-        console.log("date picker size:", this.$refs)
     },
     // beforeDestroy() {
     //     this.$store.commit("setAirtableSavings")
     // }
-    mounted() {
-        console.log("date picker size:", this.$refs.date_picker)
-    }
 }
 </script>
 
@@ -143,6 +145,7 @@ export default {
     padding: 8px;
     display: flex;
     justify-content: center;
+    align-items: center;
     border-radius: 6px;
     box-shadow: 1px 2px 10px rgb(130, 163, 173);
     .summary-box {
@@ -177,5 +180,10 @@ export default {
 }
 .right:hover {
     box-shadow: -2px 2px 5px rgba(10,50,50,.5);
+}
+.vertical-line {
+    height: 75%;
+    width: 3px;
+    background: rgb(104, 156, 172);
 }
 </style>

@@ -3,7 +3,7 @@
     <div class="typeIcon"></div>
     <div class="content">{{record.content?record.content: record.category}}</div>
     <div class="amount">
-      {{signOfRecord}}{{record.amount}}
+      {{signOfRecord}}￥{{record.amount}}
     </div>
   </div>
 </template>
@@ -37,14 +37,17 @@ export default {
   gap: 10px;
 }
 .record {
-  width: 300px;
+  width: 90%;
   height: 80px;
+  position: relative;
   border-bottom: 1px solid rgba(145, 145, 145, .6);
   padding: auto 10px;
+  margin: 0 auto;
 }
 .typeIcon {
-  width: 40px;
-  height: 40px;
+  --type-icon-size: 25px;
+  width: var(--type-icon-size);
+  height: var(--type-icon-size);
   border: 1px solid black;
 }
 .amount {

@@ -30,18 +30,18 @@
                     <div>{{item.name}}</div>
                 </div>
             </div>
-            <hr>
         </div>
-        <div class="input-amount">
+        <div class="input-amount fc">
             <label>内容 <input type="text" class="long-text-input" v-model="content"></label>
             <label>金额 <input type="number" class="number-input" v-model="amount"></label>
         </div>
-        <button v-if="this.page == 'add'" @click="addRecord">添加</button>
-        <div v-if="this.page == 'detail'">
-            <button @click="modifyRecord">修改</button>
-            <button @click="deleteRecord">删除</button>
+        <div class="op-buttons fr">
+            <button v-if="this.page == 'add'" class="op-button" @click="addRecord">添加</button>
+            <button v-if="this.page == 'detail'" class="op-button" @click="modifyRecord">修改</button>
+            <button v-if="this.page == 'detail'" class="op-button" @click="deleteRecord">删除</button>
+            <button class="op-button" @click="navBack">返回</button>
         </div>
-        <button @click="navBack">返回</button>
+        
     </div>
 </template>
 
@@ -201,6 +201,20 @@ export default {
             padding: 0 10px;
         }
     }
+    .input-amount {
+        width: 90%;
+        border-top: 2px solid rgb(243, 215, 56);
+        padding: 15px;
+        label {
+            width: 90%;
+        }
+        input {
+            width: 60%;
+            height: 25px;
+            border: 2px solid rgb(92, 143, 163);
+            border-radius: 8px;
+        }
+    }
 }
 
 .chooseIcon .icon {
@@ -222,5 +236,14 @@ export default {
 }
 .icon use {
     width: 100%; height: 100%;
+}
+.op-button {
+    width: 80px;
+    height: 40px;
+    border: none;
+    outline: none;
+    border-radius: 8px;
+    background: rgb(66, 199, 252);
+    color: #fff;
 }
 </style>
