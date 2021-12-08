@@ -4,15 +4,24 @@
             <button @click="switchRecordType('支出')" class="button" :class="{active: recordType == '支出'}">支出</button>
             <button @click="switchRecordType('收入')" class="button" :class="{active: recordType == '收入'}">收入</button>
         </div>
+        <el-radio-group v-model="recordType" style="width: 70%">
+            <el-radio-button label="支出"></el-radio-button>
+            <el-radio-button label="收入"></el-radio-button>
+        </el-radio-group>
+        <el-date-picker v-model="showDate"></el-date-picker>
         <div class="choose-category choose">
             <label>收支类别 - {{category? category: '请选择'}} </label>
+            <el-divider content-position="left">收支类别 - {{category? category: '请选择'}}</el-divider>
             <div class="fr">
                 <div
                     v-for="(item, index) in (recordType == '支出'? expenseEnumeration: incomeEnumeration)"
                     :key="index"
-                    @click="setCategory(item)"
-                    :class="['chooseIcon', 'fc', {chosen: category == item}]"
-                >{{item}}</div>
+                    @click="setCategory(item.value)"
+                    :class="['chooseIcon', 'fc', {chosen: category == item.value}]"
+                >
+                    <i :class="'el-icon-'+item.icon"></i>
+                    <div>{{item.name}}</div>
+                </div>
             </div>
         </div>
         <div class="choose-account choose">
@@ -21,8 +30,8 @@
                 <div
                     v-for="(item, index) in accountEnumeration"
                     :key="index"
-                    @click="setAccount(item.name)"
-                    :class="['chooseIcon', {chosen: accountType == item}]"
+                    @click="setAccount(item.value)"
+                    :class="['chooseIcon', {chosen: accountType == item.value}]"
                 >
                     <svg class="icon" aria-hidden="true">
                         <use :xlink:href="'#'+item.icon"></use>
@@ -32,8 +41,8 @@
             </div>
         </div>
         <div class="input-amount fc">
-            <label>内容 <input type="text" class="long-text-input" v-model="content"></label>
-            <label>金额 <input type="number" class="number-input" v-model="amount"></label>
+            <label>内容 <input type="text" class="long-text-input" v-model="content" @focus="toggleKeyboard()"></label>
+            <label>金额 <input type="text" class="number-input" v-model="amount"></label>
         </div>
         <div class="op-buttons fr">
             <button v-if="this.page == 'add'" class="op-button" @click="addRecord">添加</button>
@@ -41,13 +50,19 @@
             <button v-if="this.page == 'detail'" class="op-button" @click="deleteRecord">删除</button>
             <button class="op-button" @click="navBack">返回</button>
         </div>
+        <inputKeyboard 
+            ref="keyboard" 
+            @amtInput="setAmtInput"
+            @amtDelete="deleteAmtInput"
+        />
         
     </div>
 </template>
 
 <script>
-import {mapState} from 'vuex'
+import {mapState, mapGetters} from 'vuex'
 import '../static/iconfont'
+import inputKeyboard from '@/components/inputKeyboard'
 export default {
     data() {
         return {
@@ -55,28 +70,28 @@ export default {
             category: '',
             accountType: '',
             content: '',
-            amount: null,
+            amount: '',
             recordType: '支出',
-            formerAmount: null,
+            formerAmount: '',
             formerAccountType: '',
 
             // 控制字段
             isDetail: false, // 是否点击记录进入详情
-
-            // 固定
-            accountEnumeration: [
-                {name: 'alipay', icon: 'icon-zhifubao1'},
-                {name: 'wechat', icon: 'icon-weixinzhifu'},
-                {name: 'abc', icon: 'icon-nongyeyinhang'},
-                {name: 'cmb', icon: 'icon-zhaoshangyinhang'},
-            ],
-            expenseEnumeration: ['餐饮','交通','日用','服饰','住房','娱乐','数码'],
-            incomeEnumeration: ['理财收益', '餐补', '工资', '红包返利'],
         }
     },
     props: {page:{}},
+    components: {inputKeyboard},
     computed: {
-        ...mapState(["chosenDay", "curRecord"])
+        ...mapState(["chosenDay", "curRecord"]),
+        ...mapGetters(["expenseEnumeration", "incomeEnumeration", "accountEnumeration"]),
+        showDate: {
+            get() {
+                return this.curRecord?.createTime || this.chosenDay
+            },
+            set(val) {
+                this.$store.commit("setChosenDay", val)
+            }
+        }
     },
     methods: {
         switchRecordType(str) {
@@ -126,6 +141,17 @@ export default {
         },
         navBack() {
             this.$router.push('/daily_record')
+        },
+        toggleKeyboard() {
+            this.$refs.keyboard.toggleKeyboard()
+        },
+        setAmtInput(val) {
+            console.log('set amt input:', val)
+            this.amount += val
+        },
+        deleteAmtInput() {
+            console.log('delete amt input')
+            this.amount = this.amount.slice(0, -1)
         }
     },
     created() {
@@ -177,6 +203,7 @@ export default {
             background-color: rgb(164, 224, 248);
             border: none;
             outline: none;
+            color: #fff
         }
         .button:last-child {
             border-radius: 0 25px 25px 0;
@@ -199,6 +226,19 @@ export default {
             transform: translate(-50%, -50%);
             background: #fff;
             padding: 0 10px;
+        }
+        .chooseIcon {
+            box-sizing: border-box;
+            cursor: pointer;
+            width: 4.2em;
+            i {
+                font-size: 30px;
+            }
+            &.chosen {
+                // background-color: #9fe;
+                border: 2px solid rgb(83, 203, 250);
+                border-radius: 4px;
+            }
         }
     }
     .input-amount {
@@ -245,5 +285,6 @@ export default {
     border-radius: 8px;
     background: rgb(66, 199, 252);
     color: #fff;
+    cursor: pointer;
 }
 </style>

@@ -3,16 +3,21 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 Vue.use(Vuex);
 
-var base = new Airtable({apiKey: 'YOU_API_KEY'}).base('appG9EdnP5rg4pyp9');
+var base = new Airtable({apiKey: 'YOUR_API_KEY'}).base('YOUR_BASE_KEY');
 var table = base('records_test'), savingTable = base('saving_test')
-const savingId = 'recFolhzu0j0V2ADk'
+const savingId = 'recFolhzu0j0V2ADk' // test
+// const savingId = 'reca22Hd66BFUBolR'
 
 const store = new Vuex.Store({
   state: {
+    // 可变项
     records: [],
     chosenDay: new Date(),
     curRecord: {},
-    savings: {}
+    savings: {},
+
+    // 固定项（枚举项）
+    enumeration: [],
   },
   getters: {
     dailyTotal(state) {
@@ -22,7 +27,22 @@ const store = new Vuex.Store({
       }, 0)
       console.log("total:", total)
       return total
-    }
+    },
+    expenseEnumeration(state) {
+      return state.enumeration.filter(item => {
+        return item.type == 'expense'
+      })
+    },
+    incomeEnumeration(state) {
+      return state.enumeration.filter(item => {
+        return item.type == 'income'
+      })
+    },
+    accountEnumeration(state) {
+      return state.enumeration.filter(item => {
+        return item.type == 'account'
+      })
+    },
   },
   mutations: {
     setCurRecord(state, record) {
@@ -127,20 +147,26 @@ const store = new Vuex.Store({
       console.log("chosenDay:", state.chosenDay)
       let curDate = state.chosenDay
       curDate.setHours(curDate.getHours() + 8)
-      console.log("iso:", curDate.toISOString())
+      console.log("iso:", curDate.toISOString().split('T')[0])
+      let tempRecords = []
       // 初始化收支记录
       table
         .select({
           view: "Grid view",
-          filterByFormula: `createTime = "${curDate.toISOString().split('T')[0]}"` // 这里还有待确认！！！
+          // filterByFormula: `createTime = "${curDate.toISOString().split('T')[0]}"` // 这里还有待确认！！！
         })
-        .firstPage((err, records) => { // eachPage?
-          if(err) {
-            console.log("initData-record err:", err);
-            return;
+        .eachPage(function Page(records, fetchNextPage) { // eachPage?
+          console.log("records in each page:", records)
+          tempRecords = [...tempRecords, ...records.map(item => item.fields)]
+          fetchNextPage()
+        }, function done(err) {
+          if (err) { 
+            console.error("check state err:", err); 
+            return; 
           }
-          state.records = records.map(item => item.fields)
-          console.log("records get:", state.records)
+          console.log("tempRecords:", tempRecords)
+          state.records = tempRecords.filter(record => record.createTime == curDate.toISOString().split('T')[0])
+          console.log("records after checkState:", state.records)
         })
       // 初始化积蓄信息
       savingTable
@@ -154,6 +180,45 @@ const store = new Vuex.Store({
           }
           state.savings = records[0].fields
           console.log("savings:", state.savings)
+        })
+      // 初始化枚举信息
+      base('enumeration')
+        .select({
+          view: 'Grid view',
+        })
+        .firstPage((err, records) => {
+          if(err) {
+            console.log("get expense category err:", err)
+            return
+          }
+          state.enumeration = records.map(item => item.fields)
+        })
+    },
+    checkRecordsState(state) {
+      console.log("checkRecordsState!")
+      console.log("chosenDay:", state.chosenDay)
+      let curDate = state.chosenDay
+      curDate.setHours(curDate.getHours() + 8)
+      console.log("iso:", curDate.toISOString())
+      let tempRecords = []
+      // 初始化收支记录
+      table
+        .select({
+          view: "Grid view",
+          // filterByFormula: `createTime = "${curDate.toISOString().split('T')[0]}"` // 这里还有待确认！！！
+        })
+        .eachPage(function Page(records, fetchNextPage) { // eachPage?
+          console.log("records in each page:", records)
+          tempRecords = [...tempRecords, ...records.map(item => item.fields)]
+          fetchNextPage()
+        }, function done(err) {
+          if (err) { 
+            console.error("check state err:", err); 
+            return; 
+          }
+          console.log("tempRecords:", tempRecords)
+          state.records = tempRecords.filter(record => record.createTime == curDate.toISOString().split('T')[0])
+          console.log("records after checkState:", state.records)
         })
     },
     setAirtableSavings(state) {

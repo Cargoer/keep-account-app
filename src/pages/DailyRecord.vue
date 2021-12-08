@@ -2,15 +2,25 @@
     <div class="daily-records">
         <!-- <keep-alive> -->
         <div class="top">
-            <DatePicker 
+            <el-date-picker
                 v-model="dateValue"
-                lang="ch" 
-                class="date-picker"
-                ref="date_picker"
-            />
+                type="date"
+                placeholder="选择日期">
+            </el-date-picker>
             <!-- </keep-alive> -->
             <button class="today-button" @click="dateValue = new Date()">今天</button>
             <button class="add" @click="toAdd">+</button>
+        </div>
+        
+        <div class="month-progress">
+            <span>本月进度  </span>
+            <div class="progress-bar">
+                <el-progress 
+                    :text-inside="true" 
+                    :stroke-width="26" 
+                    :percentage="Number(dayOfMonth)" >
+                </el-progress>
+            </div>
         </div>
         <div class="summary">
             <div class="summary-box">
@@ -32,7 +42,7 @@
 </template>
 
 <script>
-import vueDatepickerUi from 'vue-datepicker-ui'
+// import vueDatepickerUi from 'vue-datepicker-ui'
 import 'vue-datepicker-ui/lib/vuedatepickerui.css'
 import RecordList from '../components/RecordList.vue'
 import {mapState, mapGetters} from 'vuex'
@@ -43,18 +53,26 @@ export default {
         }
     },
     components: {
-        DatePicker: vueDatepickerUi,
+        // DatePicker: vueDatepickerUi,
+        // DatePicker,
         RecordList
     },
     computed: {
         ...mapState(["savings"]),
-        ...mapGetters(['dailyTotal'])
+        ...mapGetters(['dailyTotal']),
+        dayOfMonth() {
+            let now = new Date(),
+                day = now.getDate(),
+                totalDay = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate()
+            return Number(day / totalDay * 100).toFixed(1)
+        }
     },
     watch: {
         dateValue: {
             handler: function(newVal) {
                 this.$store.commit("setChosenDay", newVal)
-                this.$store.commit("initData")
+                // this.$store.commit("initData")
+                this.$store.commit("checkRecordsState")
             },
             deep: true
         },
@@ -64,14 +82,14 @@ export default {
             this.$router.push(`/record/add`)
         },
         shiftDay(n) {
-            let tempDate = this.dateValue
-            // this.dateValue.setDate(this.dateValue.getDate() + n)
-            tempDate.setDate(tempDate.getDate() + n)
-            this.dateValue = new Date(tempDate)
+            this.dateValue.setDate(this.dateValue.getDate() + n)
             console.log("==============================")
             console.log("dateValue:", this.dateValue)
             this.$store.commit("setChosenDay", this.dateValue)
             this.$store.commit("initData")
+        },
+        progressFormat(percentage) {
+            return `本月进度 ${Math.round(percentage)}%`
         }
     },
     created() {
@@ -139,6 +157,17 @@ export default {
     }
 }
 
+.month-progress {
+    margin-top: 15px;
+    span {
+        margin-right: 10px;
+    }
+    .progress-bar {
+        width: 70%;
+        display: inline-block;
+    }
+}
+
 .summary {
     height: 85px;
     margin-top: 15px;
@@ -156,6 +185,8 @@ export default {
         gap: 8px;
     }
 }
+
+
 
 .date-shift-button {
     width: 40px;
