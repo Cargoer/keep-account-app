@@ -35,6 +35,7 @@
         </div>
         <RecordList />
         <div>{{dateValue}}</div>
+        <Tabbar />
         
         <button class="date-shift-button left" @click="shiftDay(-1)">&lt;</button>
         <button class="date-shift-button right" @click="shiftDay(1)">&gt;</button>
@@ -46,6 +47,7 @@
 import 'vue-datepicker-ui/lib/vuedatepickerui.css'
 import RecordList from '../components/RecordList.vue'
 import {mapState, mapGetters} from 'vuex'
+import Tabbar from '../components/tabbar.vue'
 export default {
     data() {
         return {
@@ -55,7 +57,8 @@ export default {
     components: {
         // DatePicker: vueDatepickerUi,
         // DatePicker,
-        RecordList
+        RecordList,
+        Tabbar,
     },
     computed: {
         ...mapState(["savings"]),
@@ -98,9 +101,6 @@ export default {
         this.$store.commit("setChosenDay", this.dateValue)
         this.$store.commit("initData")
     },
-    // beforeDestroy() {
-    //     this.$store.commit("setAirtableSavings")
-    // }
 }
 </script>
 
@@ -109,9 +109,9 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    max-width: 600px;
+    // max-width: 600px;
     min-height: 80vh;
-    margin: 20px;
+    // margin: 20px;
     border-radius: 10px;
     // box-shadow: 2px 2px 10px rgba(168, 155, 150, .8);
     border-top: 5px solid rgb(245, 212, 102);

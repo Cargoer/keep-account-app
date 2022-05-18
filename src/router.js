@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import DailyRecord from './pages/DailyRecord'
 import addRecord from './pages/addRecord'
+import Statistics from './pages/statistics'
 Vue.use(VueRouter)
 
 //获取原型对象上的push函数
@@ -21,6 +22,11 @@ const routes = [
     path: '/record/:page',
     component: addRecord,
     props: true
+  },
+  {
+    path: '/statistics',
+    component: Statistics,
+    children: []
   },
 ]
 

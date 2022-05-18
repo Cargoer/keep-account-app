@@ -1,15 +1,22 @@
-import Airtable from 'airtable'
+// import Airtable from 'airtable'
 import Vue from 'vue'
 import Vuex from 'vuex'
+import Table from '@/api/airtable.js'
 Vue.use(Vuex);
 
-var base = new Airtable({apiKey: 'YOUR_API_KEY'}).base('YOUR_BASE_KEY');
-var table = base('records_test'), savingTable = base('saving_test')
+const apiKey = 'YOU_API_KEY'
+const baseKey = 'YOU_BASE_KEY'
+const recordsTableName = 'records_test'
+const savingTableName = 'saving_test'
 const savingId = 'recFolhzu0j0V2ADk' // test
 // const savingId = 'reca22Hd66BFUBolR'
 
+
 const store = new Vuex.Store({
   state: {
+    recordsTable: new Table(apiKey, baseKey, recordsTableName),
+    savingTable: new Table(apiKey, baseKey, savingTableName),
+    enumerationTable: new Table(apiKey, baseKey, "enumeration"),
     // 可变项
     records: [],
     chosenDay: new Date(),
@@ -52,29 +59,23 @@ const store = new Vuex.Store({
       state.chosenDay = date
     },
     insert(state, record) {
-      table.create(record, (err, row) => {
-        if(err) {
-          console.log("insertErr:", err)
-          return
-        }
-        // 插入收支记录
-        var insertId = row.getId()
-        record.id = insertId
+      state.recordsTable.addRecord(record).then(id => {
+        record.id = id
         state.records.unshift(record)
-        table.update(insertId, {
-          "id": insertId
-        }, (err) => {
-          err && console.log("updateIdErr:", err)
-        })
         // 更新积蓄
         var delta = record.recordType == '支出'? (-record.amount): record.amount
         state.savings.saving += delta
         state.savings[record.accountType] += delta
-        savingTable.update(savingId, {
+        state.savingTable.updateRecord(savingId, {
           [record.accountType]: state.savings[record.accountType]
-        }, (err) => {err && console.log("update-saving err:", err)})
+        }).catch(err => {
+          console.error("update-saving err:", err)
+        })
+      }).catch(err => {
+        console.error("insert err:", err)
       })
     },
+
     update(state, payload) {
       state.records = state.records.map(item => {
         if(item.id === payload.id) {
@@ -83,10 +84,10 @@ const store = new Vuex.Store({
         return item
       })
       console.log("payLoad after:", payload)
-      // 更新收支记录
-      table.update(payload.id, payload.change, (err) => {
-        err && console.log("updateErr:", err)
-      })
+      state.recordsTable.updateRecord(payload.id, payload.change)
+        .catch(err => {
+          console.error("update-record err:", err)
+        })
       // 更新积蓄，逻辑待整理
       // 1. 只改金额，对应账户的金额+=delta
       // 2. 只改账户，前账户金额-=amount，后账户金额+=amount
@@ -100,46 +101,81 @@ const store = new Vuex.Store({
         let delta = curAmount - formerAmount
         state.savings.saving += delta
         state.savings[curAccountType] += delta
-        savingTable.update(savingId, {
+        state.savingTable.updateRecord(savingId, {
           [payload.change.accountType]: state.savings[curAccountType]
-        }, (err) => {err && console.log("update-saving err:", err)})
+        }).catch(err => {
+          console.log("update-saving err:", err)
+        })
+        // savingTable.update(savingId, {
+        //   [payload.change.accountType]: state.savings[curAccountType]
+        // }, (err) => {err && console.log("update-saving err:", err)})
       }
       // 2. 只改账户，前账户金额-=amount，后账户金额+=amount
       if(formerAmount == curAmount && formerAccountType != curAccountType){
         state.savings[formerAccountType] -= curAmount
         state.savings[curAccountType] += curAmount
-        savingTable.update(savingId, {
+        state.savingTable.updateRecord(savingId, {
           [formerAccountType]: state.savings[formerAccountType],
           [curAccountType]: state.savings[curAccountType]
-        }, (err) => {err && console.log("update-saving err:", err)})
+        }).catch(err => {
+          console.log("update-saving err:", err)
+        })
+        // savingTable.update(savingId, {
+        //   [formerAccountType]: state.savings[formerAccountType],
+        //   [curAccountType]: state.savings[curAccountType]
+        // }, (err) => {err && console.log("update-saving err:", err)})
       }
       // 3. 都改，前账户金额-=formerAmount，后账户金额+=curAmount
       if(formerAmount != curAmount && formerAccountType != curAccountType){
         state.savings[formerAccountType] -= formerAmount
         state.savings[curAccountType] += curAmount
-        savingTable.update(savingId, {
+        state.savingTable.updateRecord(savingId, {
           [formerAccountType]: state.savings[formerAccountType],
           [curAccountType]: state.savings[curAccountType]
-        }, (err) => {err && console.log("update-saving err:", err)})
+        }).catch(err => {
+          console.log("update-saving err:", err)
+        })
+        // savingTable.update(savingId, {
+        //   [formerAccountType]: state.savings[formerAccountType],
+        //   [curAccountType]: state.savings[curAccountType]
+        // }, (err) => {err && console.log("update-saving err:", err)})
       }
     },
     delete(state, ids) {
       state.records = state.records.filter(item => {
         return ids.indexOf(item.id) === -1
       })
-      let deletedRecords = []
-      table.destroy(ids, (err, records) => {
-        deletedRecords = records
-        err && console.log("deleteErr:", err)
-      })
-      console.log("deletedRecords:", deletedRecords)
-      deletedRecords.forEach((item) => {
-        state.savings.saving -= item.amount
-        state.savings[item.accountType] -= item.amount
-        savingTable.update(savingId, {
-          [item.accountType]: state.savings[item.accountType]
-        }, (err) => {err && console.log("update-saving err:", err)})
-      })
+      state.recordsTable.deleteRecord(ids)
+        .then(deletedRecords => {
+          deletedRecords.forEach((item) => {
+            state.savings.saving -= item.amount
+            state.savings[item.accountType] -= item.amount
+            state.savingTable.updateRecord(savingId, {
+              [item.accountType]: state.savings[item.accountType]
+            }).catch(err => {
+              console.error("update-saving err:", err)
+            })
+            // savingTable.update(savingId, {
+            //   [item.accountType]: state.savings[item.accountType]
+            // }, (err) => {err && console.log("update-saving err:", err)})
+          })
+        })
+        .catch(err => {
+          console.error("delete err:", err)
+        })
+      // let deletedRecords = []
+      // table.destroy(ids, (err, records) => {
+      //   deletedRecords = records
+      //   err && console.log("deleteErr:", err)
+      // })
+      // console.log("deletedRecords:", deletedRecords)
+      // deletedRecords.forEach((item) => {
+      //   state.savings.saving -= item.amount
+      //   state.savings[item.accountType] -= item.amount
+      //   savingTable.update(savingId, {
+      //     [item.accountType]: state.savings[item.accountType]
+      //   }, (err) => {err && console.log("update-saving err:", err)})
+      // })
     },
     initData(state) {
       // 初始化数据
@@ -147,79 +183,110 @@ const store = new Vuex.Store({
       console.log("chosenDay:", state.chosenDay)
       let curDate = state.chosenDay
       curDate.setHours(curDate.getHours() + 8)
-      console.log("iso:", curDate.toISOString().split('T')[0])
-      let tempRecords = []
+      console.log("iso:", typeof curDate.toISOString().split('T')[0])
       // 初始化收支记录
-      table
-        .select({
-          view: "Grid view",
-          // filterByFormula: `createTime = "${curDate.toISOString().split('T')[0]}"` // 这里还有待确认！！！
+      let filterFormula = `createTime = "${curDate.toISOString().split('T')[0]}"`
+      console.log("filterFormula:", filterFormula)
+      state.recordsTable.getRecords(filterFormula)
+        .then(records => {
+          console.log("get records res:", records)
+          state.records = records
         })
-        .eachPage(function Page(records, fetchNextPage) { // eachPage?
-          console.log("records in each page:", records)
-          tempRecords = [...tempRecords, ...records.map(item => item.fields)]
-          fetchNextPage()
-        }, function done(err) {
-          if (err) { 
-            console.error("check state err:", err); 
-            return; 
-          }
-          console.log("tempRecords:", tempRecords)
-          state.records = tempRecords.filter(record => record.createTime == curDate.toISOString().split('T')[0])
-          console.log("records after checkState:", state.records)
+        .catch(err => {
+          console.error("get records err:", err)
         })
+      // let tempRecords = []
+      // table
+      //   .select({
+      //     view: "Grid view",
+      //     // filterByFormula: `createTime = "${curDate.toISOString().split('T')[0]}"` // 这里还有待确认！！！
+      //   })
+      //   .eachPage(function Page(records, fetchNextPage) { // eachPage?
+      //     console.log("records in each page:", records)
+      //     tempRecords = [...tempRecords, ...records.map(item => item.fields)]
+      //     fetchNextPage()
+      //   }, function done(err) {
+      //     if (err) { 
+      //       console.error("check state err:", err); 
+      //       return; 
+      //     }
+      //     console.log("tempRecords:", tempRecords)
+      //     state.records = tempRecords.filter(record => record.createTime == curDate.toISOString().split('T')[0])
+      //     console.log("records after checkState:", state.records)
+      //   })
       // 初始化积蓄信息
-      savingTable
-        .select({
-          view: "Grid view",
+      state.savingTable.getRecords()
+        .then(records => {
+          console.log("get savings res:", records)
+          state.savings = records[0]
         })
-        .firstPage((err, records) => {
-          if(err) {
-            console.log("initData-saving err:", err)
-            return
-          }
-          state.savings = records[0].fields
-          console.log("savings:", state.savings)
+        .catch(err => {
+          console.error("get savings err:", err)
         })
+
       // 初始化枚举信息
-      base('enumeration')
-        .select({
-          view: 'Grid view',
+      state.enumerationTable.getRecords()
+        .then(records => {
+          state.enumeration = records
         })
-        .firstPage((err, records) => {
-          if(err) {
-            console.log("get expense category err:", err)
-            return
-          }
-          state.enumeration = records.map(item => item.fields)
+        .catch(err => {
+          console.error("get enumeration err:", err)
         })
+      // base('enumeration')
+      //   .select({
+      //     view: 'Grid view',
+      //   })
+      //   .firstPage((err, records) => {
+      //     if(err) {
+      //       console.log("get expense category err:", err)
+      //       return
+      //     }
+      //     state.enumeration = records.map(item => item.fields)
+      //   })
     },
     checkRecordsState(state) {
-      console.log("checkRecordsState!")
+      console.log("initData!")
       console.log("chosenDay:", state.chosenDay)
       let curDate = state.chosenDay
       curDate.setHours(curDate.getHours() + 8)
-      console.log("iso:", curDate.toISOString())
-      let tempRecords = []
+      console.log("iso:", curDate.toISOString().split('T')[0])
       // 初始化收支记录
-      table
-        .select({
-          view: "Grid view",
-          // filterByFormula: `createTime = "${curDate.toISOString().split('T')[0]}"` // 这里还有待确认！！！
+      let filterFormula = `createTime = "${curDate.toISOString().split('T')[0]}"`
+      console.log("filterFormula:", filterFormula)
+      state.recordsTable.getRecords(filterFormula)
+        .then(records => {
+          console.log("get records res:", records)
+          state.records = records
         })
-        .eachPage(function Page(records, fetchNextPage) { // eachPage?
-          console.log("records in each page:", records)
-          tempRecords = [...tempRecords, ...records.map(item => item.fields)]
-          fetchNextPage()
-        }, function done(err) {
-          if (err) { 
-            console.error("check state err:", err); 
-            return; 
-          }
-          console.log("tempRecords:", tempRecords)
-          state.records = tempRecords.filter(record => record.createTime == curDate.toISOString().split('T')[0])
-          console.log("records after checkState:", state.records)
+        .catch(err => {
+          console.error("get records err:", err)
         })
+
+      // console.log("checkRecordsState!")
+      // console.log("chosenDay:", state.chosenDay)
+      // let curDate = state.chosenDay
+      // curDate.setHours(curDate.getHours() + 8)
+      // console.log("iso:", curDate.toISOString())
+      // let tempRecords = []
+      // // 初始化收支记录
+      // table
+      //   .select({
+      //     view: "Grid view",
+      //     // filterByFormula: `createTime = "${curDate.toISOString().split('T')[0]}"` // 这里还有待确认！！！
+      //   })
+      //   .eachPage(function Page(records, fetchNextPage) { // eachPage?
+      //     console.log("records in each page:", records)
+      //     tempRecords = [...tempRecords, ...records.map(item => item.fields)]
+      //     fetchNextPage()
+      //   }, function done(err) {
+      //     if (err) { 
+      //       console.error("check state err:", err); 
+      //       return; 
+      //     }
+      //     console.log("tempRecords:", tempRecords)
+      //     state.records = tempRecords.filter(record => record.createTime == curDate.toISOString().split('T')[0])
+      //     console.log("records after checkState:", state.records)
+      //   })
     },
     setAirtableSavings(state) {
       delete state.savings.saving
